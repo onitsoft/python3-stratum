@@ -1,19 +1,21 @@
-import util
+from __future__ import absolute_import
+from . import util
 from twisted.internet import defer
 
-import settings
+from . import settings
 
 import lib.logger
-log = lib.logger.get_logger('coinbaser')
+log = lib.logger.get_logger(u'coinbaser')
 
 # TODO: Add on_* hooks in the app
-    
+
+
 class SimpleCoinbaser(object):
-    '''This very simple coinbaser uses constant bitcoin address
+    u'''This very simple coinbaser uses constant bitcoin address
     for all generated blocks.'''
-    
+
     def __init__(self, bitcoin_rpc, address):
-        log.debug("Got to coinbaser")
+        log.debug(u"Got to coinbaser")
         # Fire Callback when the coinbaser is ready
         self.on_load = defer.Deferred()
 
@@ -29,53 +31,55 @@ class SimpleCoinbaser(object):
         d.addErrback(self._failure)
 
     def address_check(self, result):
-        if result['isvalid'] and result['ismine']:
+        if result[u'isvalid'] and result[u'ismine']:
             self.is_valid = True
-            log.info("Coinbase address '%s' is valid" % self.address)
-            if 'address' in result:
-               log.debug("Address = %s " % result['address'])
-               self.address = result['address']
-            if 'pubkey' in result:
-               log.debug("PubKey = %s " % result['pubkey'])
-               self.pubkey = result['pubkey']
-            if 'iscompressed' in result:
-               log.debug("Is Compressed = %s " % result['iscompressed'])
-            if 'account' in result:
-               log.debug("Account = %s " % result['account'])
+            log.info(u"Coinbase address '%s' is valid" % self.address)
+            if u'address' in result:
+                log.debug(u"Address = %s " % result[u'address'])
+                self.address = result[u'address']
+            if u'pubkey' in result:
+                log.debug(u"PubKey = %s " % result[u'pubkey'])
+                self.pubkey = result[u'pubkey']
+            if u'iscompressed' in result:
+                log.debug(u"Is Compressed = %s " % result[u'iscompressed'])
+            if u'account' in result:
+                log.debug(u"Account = %s " % result[u'account'])
             if not self.on_load.called:
-               self.address = result['address']
-               self.on_load.callback(True)
+                self.address = result[u'address']
+                self.on_load.callback(True)
 
-        elif result['isvalid'] and settings.ALLOW_NONLOCAL_WALLET == True :
-             self.is_valid = True
-             log.warning("!!! Coinbase address '%s' is valid BUT it is not local" % self.address)
-             if 'pubkey' in result:
-               log.debug("PubKey = %s " % result['pubkey'])
-               self.pubkey = result['pubkey']
-             if 'account' in result:
-               log.debug("Account = %s " % result['account'])
-             if not self.on_load.called:
-                    self.on_load.callback(True)
+        elif result[u'isvalid'] and settings.ALLOW_NONLOCAL_WALLET:
+            self.is_valid = True
+            log.warning(
+                u"!!! Coinbase address '%s' is valid BUT it is not local" %
+                self.address)
+            if u'pubkey' in result:
+                log.debug(u"PubKey = %s " % result[u'pubkey'])
+                self.pubkey = result[u'pubkey']
+            if u'account' in result:
+                log.debug(u"Account = %s " % result[u'account'])
+            if not self.on_load.called:
+                self.on_load.callback(True)
 
         else:
             self.is_valid = False
-            log.error("Coinbase address '%s' is NOT valid!" % self.address)
-        
-        #def on_new_block(self):
+            log.error(u"Coinbase address '%s' is NOT valid!" % self.address)
+
+        # def on_new_block(self):
     #    pass
-    
-    #def on_new_template(self):
+
+    # def on_new_template(self):
     #    pass
     def _failure(self, failure):
-           log.exception("Cannot validate Wallet address '%s'" % self.address)
-           raise
-    
+        log.exception(u"Cannot validate Wallet address '%s'" % self.address)
+        raise
+
     def get_script_pubkey(self):
-        if settings.COINDAEMON_Reward == 'POW':
+        if settings.COINDAEMON_Reward == u'POW':
             self._validate()
             return util.script_to_address(self.address)
         else:
             return util.script_to_pubkey(self.pubkey)
-                   
+
     def get_coinbase_data(self):
-        return ''
+        return u''
